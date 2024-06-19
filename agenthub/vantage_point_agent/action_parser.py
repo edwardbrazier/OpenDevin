@@ -11,11 +11,10 @@ from opendevin.events.action import (
 )
 
 
-
 class VantagePointResponseParser(ResponseParser):
     """
     VantagePointResponseParser is responsible for parsing the responses from the VantagePointAgent.
-    
+
     This parser interprets the responses and converts them into actionable items that the agent can execute.
     It extends the functionality of the base ResponseParser to handle specific actions related to the VantagePointAgent.
 
@@ -63,7 +62,7 @@ class VantagePointActionParserFinish(ActionParser):
     """
     Actions that this parser can generate:
         - AgentFinishAction() - end the interaction
-    
+
     This parser checks if the action string contains the <finish> tag, and if so, it extracts the thought from the action string and returns an AgentFinishAction.
     """
 
@@ -149,6 +148,8 @@ class VantagePointActionParserAgentDelegate(ActionParser):
     """
     Actions that this parser can generate:
         - AgentDelegateAction(agent, inputs) - delegate action for (sub)task
+
+    This parser object is stateful.
     """
 
     def __init__(
@@ -158,19 +159,28 @@ class VantagePointActionParserAgentDelegate(ActionParser):
 
     def check_condition(self, action_str: str) -> bool:
         self.agent_delegate = re.search(
-            r'<execute_browse>(.*)</execute_browse>', action_str, re.DOTALL
+            r'<ask_omniscient_chatbot>(.*)</ask_omniscient_chatbot>',
+            action_str,
+            re.DOTALL,
         )
         return self.agent_delegate is not None
 
     def parse(self, action_str: str) -> Action:
+        """
+        Assumes that check_conditions has been called previously on the same input string.
+        """
         assert (
             self.agent_delegate is not None
         ), 'self.agent_delegate should not be None when parse is called'
+        # Extract the thought from the action string by removing the whole command.
+        # Assumes that everything outside of those xml tags is thought.
         thought = action_str.replace(self.agent_delegate.group(0), '').strip()
-        browse_actions = self.agent_delegate.group(1).strip()
-        task = f'{thought}. I should start with: {browse_actions}'
-        return AgentDelegateAction(agent='BrowsingAgent', inputs={'task': task})
-    # TODO: Add support for delegating to OmniscientChatBot.
+        # Everything between the xml tags is for the action.
+        question_to_ask = self.agent_delegate.group(1).strip()
+        task = (
+            f'{thought}. My question for the Omniscient Chatbot is: {question_to_ask}'
+        )
+        return AgentDelegateAction(agent='OmniscientChatbot', inputs={'task': task})
 
 
 class VantagePointActionParserMessage(ActionParser):

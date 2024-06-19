@@ -1,5 +1,5 @@
-from agenthub.vantagepoint_agent.action_parser import VantagePointResponseParser
-from agenthub.vantagepoint_agent.prompt import (
+from agenthub.vantage_point_agent.action_parser import VantagePointResponseParser
+from agenthub.vantage_point_agent.prompt import (
     COMMAND_DOCS,
     EXAMPLES,
     GITHUB_MESSAGE,
@@ -29,6 +29,7 @@ from opendevin.runtime.plugins import (
     PluginRequirement,
 )
 from opendevin.runtime.tools import RuntimeTool
+
 # from opendevin.omniscient_chatbot import OmniscientChatBot
 
 ENABLE_GITHUB = True
@@ -142,7 +143,7 @@ class VantagePointAgent(Agent):
 
 
     ### Work-in-progress & Next step
-    - 
+    -
 
     """
 
@@ -159,7 +160,7 @@ class VantagePointAgent(Agent):
     in_context_example: str = f"Here is an example of how you can interact with the environment for task solving:\n{get_in_context_example()}\n\nNOW, LET'S START!"
 
     action_parser = VantagePointResponseParser()
-    omniscient_chatbot = OmniscientChatBot()
+    # omniscient_chatbot = OmniscientChatBot()
 
     def __init__(
         self,

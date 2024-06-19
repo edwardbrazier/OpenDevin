@@ -27,9 +27,18 @@ BROWSING_PREFIX = """The assistant can browse the Internet with <execute_browse>
 For example, <execute_browse> Tell me the usa's president using google search </execute_browse>.
 Or <execute_browse> Tell me what is in http://example.com </execute_browse>.
 """
+ASK_OMNISCIENT_CHATBOT_PREFIX = """
+The assistant can ask the Omniscient Chatbot about the codebase by wrapping the question with <ask_omniscient_chatbot> and </ask_omniscient_chatbot>.
+Do this when you need to know something about the codebase that you can't easily learn by looking at just one file.
+"""
 PIP_INSTALL_PREFIX = """The assistant can install Python packages using the %pip magic command in an IPython environment by using the following syntax: <execute_ipython> %pip install [package needed] </execute_ipython> and should always import packages and define variables before starting to use them."""
 
-SYSTEM_PREFIX = MINIMAL_SYSTEM_PREFIX + BROWSING_PREFIX + PIP_INSTALL_PREFIX
+SYSTEM_PREFIX = (
+    MINIMAL_SYSTEM_PREFIX
+    + BROWSING_PREFIX
+    + PIP_INSTALL_PREFIX
+    + ASK_OMNISCIENT_CHATBOT_PREFIX
+)
 
 GITHUB_MESSAGE = """To interact with GitHub, use the $GITHUB_TOKEN environment variable.
 For example, to push a branch `my_branch` to the GitHub repo `owner/repo`:
@@ -38,14 +47,14 @@ If $GITHUB_TOKEN is not set, ask the user to set it."""
 
 SYSTEM_SUFFIX = """Responses should be concise.
 The assistant should attempt fewer things at a time instead of putting too much commands OR code in one "execute" block.
-Include ONLY ONE <execute_ipython>, <execute_bash>, or <execute_browse> per response, unless the assistant is finished with the task or need more input or action from the user in order to proceed.
-IMPORTANT: Execute code using <execute_ipython>, <execute_bash>, or <execute_browse> whenever possible.
+Include ONLY ONE <execute_ipython>, <execute_bash>, <execute_browse> or <ask_omniscient_chatbot> per response, unless the assistant is finished with the task or need more input or action from the user in order to proceed.
+IMPORTANT: Execute code and delegate tasks using <execute_ipython>, <execute_bash>, <execute_browse> or <ask_omniscient_chatbot> whenever possible.
 """
 
 
 # ======= EXAMPLE MESSAGE =======
 EXAMPLES = """
---- START OF EXAMPLE ---
+--- START OF EXAMPLE 1 ---
 
 USER: Create a list of numbers from 1 to 10, and display them in a web page at port 5000.
 
@@ -244,7 +253,30 @@ Observation:
 ASSISTANT:
 The server is running on port 5000 with PID 126. You can access the list of numbers in a table format by visiting http://127.0.0.1:5000. Let me know if you have any further requests!
 
---- END OF EXAMPLE ---
+--- END OF EXAMPLE 1 ---
+
+--- START OF EXAMPLE 2 ---
+USER:
+Hey AI agent, in this web app for document management, most of the pages require similar functionality because it's all about viewing and editing tables. Can you tell me which page of the web app is missing the most functionality, on the assumption that it needs similar functionality to the other pages?
+
+ASSISTANT:
+This is a question which I can't readily answer by looking at small chunks of source files at a time. I will need some help.
+<ask_omniscient_chatbot>
+{
+  'codebase_path': './opendevin',
+  'file_extensions': ['py', 'md'],
+  'question': 'Assuming that each page of this webapp requires a similar interface, which one is missing the most functionality relative to the others?'
+}
+</ask_omniscient_chatbot>
+
+USER:
+OBSERVATION:
+For the file view page, the file view module lacks a lot of functionality which the other modules, for example the edit users module, do have. In the file view module, there isn't yet a way to edit cells in the table that lists the file, or to reorder the entries by sorting.
+
+ASSISTANT:
+That seems to address the question adequately. The module with the most room for improvement is the file view page.
+
+--- END OF EXAMPLE 2 ---
 """
 
 INVALID_INPUT_MESSAGE = (
