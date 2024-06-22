@@ -16,6 +16,7 @@ from opendevin.events.action import (
     FileReadAction,
     FileWriteAction,
     IPythonRunCellAction,
+    LoadCodebasesAction,
 )
 from opendevin.events.event import Event
 from opendevin.events.observation import (
@@ -78,7 +79,7 @@ class Runtime:
         self.browser: BrowserEnv | None = None
         self.file_store = InMemoryFileStore()
         self.event_stream = event_stream
-        self.event_stream.subscribe(EventStreamSubscriber.RUNTIME, self.on_event)
+        self.event_stream.subscribe(EventStreamSubscriber.RUNTIME, self.on_event)  # type: ignore
         self._bg_task = asyncio.create_task(self._start_background_observation_loop())
 
     def close(self):
@@ -127,11 +128,11 @@ class Runtime:
         action_type = action.action  # type: ignore[attr-defined]
         if action_type not in ACTION_TYPE_TO_CLASS:
             return ErrorObservation(f'Action {action_type} does not exist.')
-        if not hasattr(self, action_type):
+        if not hasattr(self, action_type):  # type: ignore
             return ErrorObservation(
                 f'Action {action_type} is not supported in the current runtime.'
             )
-        observation = await getattr(self, action_type)(action)
+        observation = await getattr(self, action_type)(action)  # type: ignore
         observation._parent = action.id  # type: ignore[attr-defined]
         return observation
 
@@ -175,6 +176,10 @@ class Runtime:
 
     @abstractmethod
     async def write(self, action: FileWriteAction) -> Observation:
+        pass
+
+    @abstractmethod
+    async def load_codebases(self, action: LoadCodebasesAction) -> Observation:
         pass
 
     @abstractmethod

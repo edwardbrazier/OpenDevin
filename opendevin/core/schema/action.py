@@ -20,6 +20,10 @@ class ActionTypeSchema(BaseModel):
     """Reads the content of a file.
     """
 
+    LOAD_CODEBASES: str = Field(default='load_codebases')
+    """Loads the contents of some codebases.
+    """
+
     WRITE: str = Field(default='write')
     """Writes the content to a file.
     """

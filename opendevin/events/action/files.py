@@ -39,3 +39,20 @@ class FileWriteAction(Action):
     @property
     def message(self) -> str:
         return f'Writing file: {self.path}'
+
+
+@dataclass
+class LoadCodebasesAction(Action):
+    """
+    Represents reading some files from some codebases.
+    """
+
+    paths: list[str]
+    extensions: list[str]
+    thought: str = ''
+    action: str = ActionType.LOAD_CODEBASES
+    runnable: ClassVar[bool] = True
+
+    @property
+    def message(self) -> str:
+        return f'Loading codebases: {self.paths}'

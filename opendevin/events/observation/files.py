@@ -31,3 +31,20 @@ class FileWriteObservation(Observation):
     @property
     def message(self) -> str:
         return f'I wrote to the file {self.path}.'
+
+
+@dataclass
+class CodebasesLoadedObservation(Observation):
+    """
+    This data class represents findings from loading
+    some codebases in XML format.
+    """
+
+    root_directory: str
+    codebase_relative_paths: list[str]
+    extensions: list[str] = []
+    observation: str = ObservationType.CODEBASES_LOADED
+
+    @property
+    def message(self) -> str:
+        return f'I loaded the files with extensions {self.extensions} from codebases from {self.codebase_relative_paths} in the root directory {self.root_directory}.'

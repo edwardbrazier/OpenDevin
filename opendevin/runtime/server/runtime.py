@@ -8,6 +8,7 @@ from opendevin.events.action import (
     FileReadAction,
     FileWriteAction,
     IPythonRunCellAction,
+    LoadCodebasesAction,
 )
 from opendevin.events.observation import (
     CmdOutputObservation,
@@ -22,7 +23,7 @@ from opendevin.runtime.runtime import Runtime
 from opendevin.storage.local import LocalFileStore
 
 from .browse import browse
-from .files import read_file, write_file
+from .files import load_codebases_xml, read_file, write_file
 
 
 class ServerRuntime(Runtime):
@@ -111,6 +112,17 @@ class ServerRuntime(Runtime):
         working_dir = self.sandbox.get_working_directory()
         return await write_file(
             action.path, working_dir, action.content, action.start, action.end
+        )
+
+    async def load_codebases(self, action: LoadCodebasesAction) -> Observation:
+        working_dir: str | None = self.sandbox.get_working_directory()
+        working_dir_notnone: str = '/'
+
+        if working_dir is not None:
+            working_dir_notnone = working_dir
+
+        return await load_codebases_xml(
+            action.paths, working_dir_notnone, action.extensions
         )
 
     async def browse(self, action: BrowseURLAction) -> Observation:

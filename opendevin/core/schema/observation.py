@@ -8,6 +8,10 @@ class ObservationTypeSchema(BaseModel):
     """The content of a file
     """
 
+    CODEBASES_LOADED: str = Field(default='codebases_loaded')
+    """The contents of codebases loaded, in XML format.
+    """
+
     WRITE: str = Field(default='write')
 
     BROWSE: str = Field(default='browse')
