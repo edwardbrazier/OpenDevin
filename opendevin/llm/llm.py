@@ -168,6 +168,25 @@ class LLM:
             timeout=self.llm_timeout,
             temperature=llm_temperature,
             top_p=llm_top_p,
+            # This only works for Gemini, otherwise causes an exception.
+            # safety_settings=[
+            #     {
+            #         "category": "HARM_CATEGORY_HARASSMENT",
+            #         "threshold": "BLOCK_NONE",
+            #     },
+            #     {
+            #         "category": "HARM_CATEGORY_HATE_SPEECH",
+            #         "threshold": "BLOCK_NONE",
+            #     },
+            #     {
+            #         "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            #         "threshold": "BLOCK_NONE",
+            #     },
+            #     {
+            #         "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+            #         "threshold": "BLOCK_NONE",
+            #     },
+            # ]
         )
 
         completion_unwrapped = self._completion
@@ -217,6 +236,7 @@ class LLM:
 
         Check the complete documentation at https://litellm.vercel.app/docs/completion
         """
+        print(f'do_completion(): Requesting continuation from {self.model_name}')
         resp = self._completion(*args, **kwargs)
         self.post_completion(resp)
         return resp

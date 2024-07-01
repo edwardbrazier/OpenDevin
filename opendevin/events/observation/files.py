@@ -42,7 +42,7 @@ class CodebasesLoadedObservation(Observation):
 
     root_directory: str
     codebase_relative_paths: list[str]
-    extensions: list[str] = []
+    extensions: list[str]
     observation: str = ObservationType.CODEBASES_LOADED
 
     @property

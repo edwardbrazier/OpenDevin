@@ -28,7 +28,14 @@ For example, <execute_browse> Tell me the usa's president using google search </
 Or <execute_browse> Tell me what is in http://example.com </execute_browse>.
 """
 ASK_OMNISCIENT_CHATBOT_PREFIX = """
-The assistant can ask the Omniscient Chatbot about the codebase by wrapping the question with <ask_omniscient_chatbot> and </ask_omniscient_chatbot>.
+The assistant can ask the Omniscient Chatbot about the codebase by wrapping the question with <ask_omniscient_chatbot> and </ask_omniscient_chatbot>. Always make sure to close the tag with </ask_omniscient_chatbot>. The contents in between these two tags must be valid JSON, in this format:
+<ask_omniscient_chatbot>
+  {
+      "codebase_locations": ["./opendevin"],
+      "file_extensions": ["py", "md"],
+      "question": "How does the instruction get from the delegating agent to the Omniscient Chatbot?"
+  }
+</ask_omniscient_chatbot>
 Do this when you need to know something about the codebase that you can't easily learn by looking at just one file.
 """
 PIP_INSTALL_PREFIX = """The assistant can install Python packages using the %pip magic command in an IPython environment by using the following syntax: <execute_ipython> %pip install [package needed] </execute_ipython> and should always import packages and define variables before starting to use them."""
@@ -263,9 +270,9 @@ ASSISTANT:
 This is a question which I can't readily answer by looking at small chunks of source files at a time. I will need some help.
 <ask_omniscient_chatbot>
 {
-  'codebase_path': './opendevin',
-  'file_extensions': ['py', 'md'],
-  'question': 'Assuming that each page of this webapp requires a similar interface, which one is missing the most functionality relative to the others?'
+  "codebase_locations": ["./opendevin"],
+  "file_extensions": ["py","md"],
+  "question": "Assuming that each page of this webapp requires a similar interface, which one is missing the most functionality relative to the others?"
 }
 </ask_omniscient_chatbot>
 
@@ -277,6 +284,40 @@ ASSISTANT:
 That seems to address the question adequately. The module with the most room for improvement is the file view page.
 
 --- END OF EXAMPLE 2 ---
+
+--- START OF EXAMPLE 3 ---
+USER: Can you tell me about the structure of the codebase?
+
+ASSISTANT: Certainly! I'll ask the Omniscient Chatbot for information about the codebase structure.
+<ask_omniscient_chatbot>
+{
+    "codebase_locations": ["./opendevin"],
+    "file_extensions": ["py", "md"],
+    "question": "What is the overall structure of the codebase? Please provide an overview of the main directories and
+their purposes."
+}
+</ask_omniscient_chatbot>
+
+USER: OBSERVATION: The OpenDevin codebase is structured as follows:
+1. opendevin/ (root directory)
+  - controller/: Contains agent controllers and state management
+  - events/: Defines action and observation classes
+  - llm/: LLM interface and implementations
+  - runtime/: Runtime environment and plugin system
+  - core/: Core utilities and configurations
+  - omniscient_chatbot/: Implementation of the Omniscient Chatbot
+  - tests/: Unit and integration tests
+2. docs/: Documentation files
+3. examples/: Example scripts and use cases
+4. scripts/: Utility scripts for development and deployment
+
+The main functionality is implemented in the opendevin/ directory, with modular components for different aspects of the
+system.
+
+ASSISTANT: Is there anything specific about the codebase structure you'd like me to explain
+further?
+
+--- END OF EXAMPLE 3 ---
 """
 
 INVALID_INPUT_MESSAGE = (

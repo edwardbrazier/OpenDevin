@@ -1,6 +1,7 @@
 from typing import Optional
 
 from agenthub.codeact_agent.codeact_agent import CodeActAgent
+from agenthub.vantage_point_agent.vantage_point_agent import VantagePointAgent
 from opendevin.controller import AgentController
 from opendevin.controller.agent import Agent
 from opendevin.controller.state.state import State
@@ -100,6 +101,11 @@ class AgentSession:
             if not self.runtime or not isinstance(self.runtime.sandbox, DockerSSHBox):
                 logger.warning(
                     'CodeActAgent requires DockerSSHBox as sandbox! Using other sandbox that are not stateful (LocalBox, DockerExecBox) will not work properly.'
+                )
+        if isinstance(agent, VantagePointAgent):
+            if not self.runtime or not isinstance(self.runtime.sandbox, DockerSSHBox):
+                logger.warning(
+                    'VantagePointAgent requires DockerSSHBox as sandbox! Using other sandbox that are not stateful (LocalBox, DockerExecBox) will not work properly.'
                 )
         self.runtime.init_sandbox_plugins(agent.sandbox_plugins)
         self.runtime.init_runtime_tools(agent.runtime_tools)

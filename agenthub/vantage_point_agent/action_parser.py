@@ -46,9 +46,18 @@ class VantagePointResponseParser(ResponseParser):
 
     def parse_response(self, response) -> str:
         action = response.choices[0].message.content
+
+        # Make sure that the tags are closed
         for lang in ['bash', 'ipython', 'browse']:
             if f'<execute_{lang}>' in action and f'</execute_{lang}>' not in action:
                 action += f'</execute_{lang}>'
+
+        if (
+            '<ask_omniscient_chatbot>' in action
+            and '</ask_omniscient_chatbot>' not in action
+        ):
+            action += '</ask_omniscient_chatbot>'
+
         return action
 
     def parse_action(self, action_str: str) -> Action:
@@ -76,6 +85,10 @@ class VantagePointActionParserFinish(ActionParser):
         return self.finish_command is not None
 
     def parse(self, action_str: str) -> Action:
+        """
+        Stateful:
+        Assumes that check_condition has been called previously.
+        """
         assert (
             self.finish_command is not None
         ), 'self.finish_command should not be None when parse is called'
@@ -174,13 +187,13 @@ class VantagePointActionParserAgentDelegate(ActionParser):
         ), 'self.agent_delegate should not be None when parse is called'
         # Extract the thought from the action string by removing the whole command.
         # Assumes that everything outside of those xml tags is thought.
-        thought = action_str.replace(self.agent_delegate.group(0), '').strip()
+        # thought = action_str.replace(self.agent_delegate.group(0), '').strip()
         # Everything between the xml tags is for the action.
-        question_to_ask = self.agent_delegate.group(1).strip()
-        task = (
-            f'{thought}. My question for the Omniscient Chatbot is: {question_to_ask}'
+        json_query = self.agent_delegate.group(1).strip()
+        print(f'json_query to send to OmniscientChatbot: {json_query}')
+        return AgentDelegateAction(
+            agent='OmniscientChatbot', inputs={'task': json_query}
         )
-        return AgentDelegateAction(agent='OmniscientChatbot', inputs={'task': task})
 
 
 class VantagePointActionParserMessage(ActionParser):

@@ -8,6 +8,7 @@ from agenthub.vantage_point_agent.prompt import (
 )
 from opendevin.controller.agent import Agent
 from opendevin.controller.state.state import State
+from opendevin.core.logger import opendevin_logger as logger
 from opendevin.events.action import (
     Action,
     AgentFinishAction,
@@ -95,6 +96,9 @@ def truncate_observation(observation: str, max_chars: int = 10_000) -> str:
     """
     if len(observation) <= max_chars:
         return observation
+
+    logger.warning('truncate_observation(): Splitting a long observation.')
+
     half = max_chars // 2
     return (
         observation[:half]
@@ -218,23 +222,24 @@ class VantagePointAgent(Agent):
                 f'\n\nENVIRONMENT REMINDER: You have {state.max_iterations - state.iteration} turns left to complete the task.'
             )
 
-        # Consult OmniscientChatBot for a big-picture view
-        # omniscient_response = self.omniscient_chatbot.get_big_picture_view(messages)
-        # messages.append({'role': 'assistant', 'content': omniscient_response})
+        # print(f"Sending messages to AI:\n\n{messages}\n\n")
 
-        response = self.llm.do_completion(
+        response = self.llm.do_completion(  # type: ignore
             messages=messages,
             stop=[
                 '</execute_ipython>',
                 '</execute_bash>',
                 '</execute_browse>',
+                '</ask_omniscient_chatbot>',
             ],
             temperature=0.0,
         )
+
         state.num_of_chars += sum(
             len(message['content']) for message in messages
-        ) + len(response.choices[0].message.content)
-        return self.action_parser.parse(response)
+        ) + len(response.choices[0].message.content)  # type: ignore
+
+        return self.action_parser.parse(response)  # type: ignore
 
     def search_memory(self, query: str) -> list[str]:
         raise NotImplementedError('Implement this abstract method')

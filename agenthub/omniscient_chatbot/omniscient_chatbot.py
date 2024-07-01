@@ -1,3 +1,6 @@
+import json
+from typing import Optional
+
 from opendevin.controller.agent import Agent
 from opendevin.controller.state.state import State
 from opendevin.core.logger import opendevin_logger as logger
@@ -28,7 +31,14 @@ class OmniscientChatbot(Agent):
         Parameters:
         - llm (LLM): The llm to be used by this agent
         """
-        super().__init__(llm)
+
+        # TODO: Configure this to take the LLM parameters from the config file.
+        api_key: str = llm.api_key  # type: ignore
+        model: str = 'gpt-3.5-turbo'
+
+        custom_llm = LLM(api_key=api_key, model=model)
+
+        super().__init__(custom_llm)
         self.reset()
 
     def reset(self) -> None:
@@ -43,11 +53,12 @@ class OmniscientChatbot(Agent):
         The step consists of loading a codebase and answering the question about it.
 
         Requires:
-        - The input field of the state parameter must include data in this form. (example)
+        - The input field of the state parameter must include an entry called 'task' containing
+        string data in this form. (example)
         {
-            'codebase_path': './opendevin',
-            'file_extensions': ['py', 'md'],
-            'question': 'How does the instruction get from the delegating agent to the Omniscient Chatbot?'
+            "codebase_locations": ["./opendevin"],
+            "file_extensions": ["py", "md"],
+            "question": "How does the instruction get from the delegating agent to the Omniscient Chatbot?"
         }
 
         Parameters:
@@ -65,13 +76,39 @@ class OmniscientChatbot(Agent):
             state.history[-1][0], AgentDelegateAction
         ):
             # Get the instructions from the delegating agent.
-            # TODO
-            # The data is in state.input.
+            json_query: Optional[str] = state.inputs['task']  # type: ignore
 
-            # This agent has been delegated to.
-            # It needs to get some data to send to the LLM.
-            extensions = ['py']
-            locations = ['OpenDevin/agenthub/omniscient_chatbot']
+            print(f'OmniscientChatbot.step(): json_query: \n{json_query}')
+            print(f'Type of json_query: {type(json_query)}')
+
+            if json_query is None:
+                logger.error('OmniscientChatbot.step(): No query provided')
+                return AgentFinishAction(outputs={'content': 'No query provided'})
+
+            locations: Optional[list[str]]
+            extensions: Optional[list[str]]
+            question: Optional[str]
+
+            # Parse the JSON query
+            try:
+                if isinstance(json_query, str):
+                    query = json.loads(json_query)  # type: ignore
+                else:
+                    query = json_query  # type: ignore
+
+                locations = query.get('codebase_locations')  # type: ignore
+                extensions = query.get('file_extensions')  # type: ignore
+                question = query.get('question')  # type: ignore
+            except json.JSONDecodeError:
+                logger.error('OmniscientChatbot.step(): Invalid JSON query')
+                return AgentFinishAction(outputs={'content': 'Invalid JSON query'})
+
+            assert locations is not None
+            assert extensions is not None
+            assert question is not None
+
+            # extensions = ['py']
+            # locations = ['OpenDevin/agenthub/omniscient_chatbot']
             return LoadCodebasesAction(paths=locations, extensions=extensions)
 
         if len(state.history) > 0:
